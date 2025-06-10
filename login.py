@@ -1,4 +1,3 @@
-# login.py
 import streamlit as st
 import os
 import msal
@@ -13,48 +12,43 @@ TENANT_ID     = os.getenv("AZURE_TENANT_ID")
 REDIRECT_URI  = os.getenv("AZURE_REDIRECT_URI")
 AUTHORITY     = f"https://login.microsoftonline.com/{TENANT_ID}"
 
-# Chiediamo sia un id_token (openid+profile) sia un access_token per Graph
-SCOPES = ["openid", "profile", "User.Read"]
+# SOLO lo scope di Microsoft Graph; OIDC (openid, profile, offline_access) è implicito
+SCOPES = ["User.Read"]
 
 def show():
     st.title("🔐 Login con Azure AD")
 
-    # Crea app MSAL
     msal_app = msal.ConfidentialClientApplication(
         CLIENT_ID,
         authority=AUTHORITY,
         client_credential=CLIENT_SECRET
     )
 
-    # Genera uno state casuale e salvalo in session_state
     state = secrets.token_urlsafe(16)
     st.session_state["oauth_state"] = state
 
-    # URL di autorizzazione
     auth_url = msal_app.get_authorization_request_url(
-        SCOPES,
+        scopes=SCOPES,
         state=state,
         redirect_uri=REDIRECT_URI,
         prompt="select_account"
     )
-    st.markdown(f"[➡️ Accedi con il tuo account Microsoft]({auth_url})")
+    st.markdown(f"[➡️ Accedi con Microsoft]({auth_url})")
 
 def handle_callback():
     params = st.query_params
     code  = params.get("code", [None])[0]
     state = params.get("state", [None])[0]
 
-    # Debug chiave
+    # Debug
     st.write("🔍 code ricevuto:", code)
     st.write("🔍 state ricevuto:", state)
     st.write("🔍 state atteso:", st.session_state.get("oauth_state"))
 
-    # Verifica che il state combaci
     if not code or state != st.session_state.get("oauth_state"):
         st.error("❌ Stato non valido o assente. Riprova da capo.")
         st.stop()
 
-    # Richiedi il token
     msal_app = msal.ConfidentialClientApplication(
         CLIENT_ID,
         authority=AUTHORITY,
@@ -66,7 +60,6 @@ def handle_callback():
         redirect_uri=REDIRECT_URI
     )
 
-    # Mostra il risultato grezzo per capire eventuali errori
     st.write("⚙️ Risultato MSAL:", result)
 
     if "access_token" in result:
@@ -74,7 +67,7 @@ def handle_callback():
         st.session_state["token"] = result
         st.experimental_rerun()
     else:
-        err = result.get("error", "unknown_error")
+        err  = result.get("error", "unknown_error")
         desc = result.get("error_description", "")
-        st.error(f"❌ Errore durante fetch token: {err} — {desc}")
+        st.error(f"❌ Errore fetch token: {err} — {desc}")
         st.stop()
