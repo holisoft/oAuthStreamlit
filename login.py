@@ -1,4 +1,3 @@
-# login.py
 import streamlit as st
 from authlib.integrations.requests_client import OAuth2Session
 import os
@@ -17,18 +16,14 @@ SCOPE = ["openid", "profile", "email"]
 
 def show():
     st.title("Login con Azure AD")
-
     oauth = OAuth2Session(CLIENT_ID, CLIENT_SECRET, scope=SCOPE, redirect_uri=REDIRECT_URI)
     authorization_url, state = oauth.create_authorization_url(AUTH_URL)
     st.session_state["oauth_state"] = state
-
     st.markdown(f"[🔐 Clicca qui per accedere con Microsoft]({authorization_url})")
 
 def handle_callback():
     code = st.query_params.get("code")
-    state = st.query_params.get("state")
-
-    if code and state == st.session_state.get("oauth_state"):
+    if code:
         oauth = OAuth2Session(CLIENT_ID, CLIENT_SECRET, scope=SCOPE, redirect_uri=REDIRECT_URI)
         token = oauth.fetch_token(
             TOKEN_URL,
@@ -38,6 +33,7 @@ def handle_callback():
         )
         st.session_state["authenticated"] = True
         st.session_state["token"] = token
+        st.experimental_rerun()
     else:
-        st.error("❌ Autenticazione fallita. Parametri mancanti o non validi.")
+        st.error("❌ Parametri mancanti o non validi.")
         st.stop()
