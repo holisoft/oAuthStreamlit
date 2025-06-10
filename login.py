@@ -17,18 +17,15 @@ SCOPE = ["openid", "profile", "email"]
 
 def show():
     st.title("Login con Azure AD")
-    if "authenticated" not in st.session_state:
 
-        oauth = OAuth2Session(CLIENT_ID, CLIENT_SECRET, scope=SCOPE, redirect_uri=REDIRECT_URI)
-        authorization_url, state = oauth.create_authorization_url(AUTH_URL)
-        st.session_state["oauth_state"] = state
-        st.markdown(f"[Clicca qui per accedere con Microsoft]({authorization_url})")
+    oauth = OAuth2Session(CLIENT_ID, CLIENT_SECRET, scope=SCOPE, redirect_uri=REDIRECT_URI)
+    authorization_url, state = oauth.create_authorization_url(AUTH_URL)
+    st.session_state["oauth_state"] = state
 
-        st.stop()
+    st.markdown(f"[🔐 Clicca qui per accedere con Microsoft]({authorization_url})")
 
 def handle_callback():
-    code = st.experimental_get_query_params().get("code", [None])[0]
-    # code = st.query_params.get("code")
+    code = st.query_params.get("code")
     state = st.query_params.get("state")
 
     if code and state == st.session_state.get("oauth_state"):
@@ -42,5 +39,5 @@ def handle_callback():
         st.session_state["authenticated"] = True
         st.session_state["token"] = token
     else:
-        st.error("Autenticazione fallita o annullata.")
+        st.error("❌ Autenticazione fallita. Parametri mancanti o non validi.")
         st.stop()
