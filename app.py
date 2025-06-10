@@ -1,6 +1,8 @@
 import streamlit as st
 import login
 
+st.write("Query params:", st.query_params)
+
 st.set_page_config(
     page_title="Dashboard HoliSoft",
     layout="wide"
