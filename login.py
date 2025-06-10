@@ -27,6 +27,17 @@ def show():
 def handle_callback():
     code = st.query_params.get("code")
     state = st.query_params.get("state")
-st.write("📦 code ricevuto:", code)
-st.write("📦 state ricevuto:", state)
-st.write("📦 state salvato in session_state:", st.session_state.get("oauth_state"))
+
+    if code and state == st.session_state.get("oauth_state"):
+        oauth = OAuth2Session(CLIENT_ID, CLIENT_SECRET, scope=SCOPE, redirect_uri=REDIRECT_URI)
+        token = oauth.fetch_token(
+            TOKEN_URL,
+            code=code,
+            grant_type='authorization_code',
+            client_secret=CLIENT_SECRET,
+        )
+        st.session_state["authenticated"] = True
+        st.session_state["token"] = token
+    else:
+        st.error("❌ Autenticazione fallita. Parametri mancanti o non validi.")
+        st.stop()
