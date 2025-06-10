@@ -1,8 +1,6 @@
-# login.py
 import streamlit as st
 import os
 import msal
-import secrets
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,38 +16,24 @@ SCOPES = ["User.Read"]
 
 def show():
     st.title("🔐 Login con Azure AD")
-
     msal_app = msal.ConfidentialClientApplication(
         CLIENT_ID,
         authority=AUTHORITY,
         client_credential=CLIENT_SECRET
     )
-
-    # Genera e salva lo state completo
-    state = secrets.token_urlsafe(16)
-    st.session_state["oauth_state"] = state
-
     auth_url = msal_app.get_authorization_request_url(
         scopes=SCOPES,
-        state=state,
         redirect_uri=REDIRECT_URI,
         prompt="select_account"
     )
-    st.markdown(f"[➡️ Accedi con Microsoft]({auth_url})")
+    st.markdown(f"[➡️ Accedi con il tuo account Microsoft]({auth_url})")
 
 def handle_callback():
     params = st.query_params
-    # leggi code e state per intero
-    code  = params.get("code")
-    state = params.get("state")
+    code = params.get("code", [None])[0]
 
-    # Debug
-    st.write("🔍 code ricevuto:", code)
-    st.write("🔍 state ricevuto:", state)
-    st.write("🔍 state atteso:", st.session_state.get("oauth_state"))
-
-    if not code or state != st.session_state.get("oauth_state"):
-        st.error("❌ Stato non valido o assente. Riprova da capo.")
+    if not code:
+        st.error("❌ Nessun codice di autorizzazione ricevuto. Riprova da capo.")
         st.stop()
 
     msal_app = msal.ConfidentialClientApplication(
@@ -63,6 +47,7 @@ def handle_callback():
         redirect_uri=REDIRECT_URI
     )
 
+    # Debug: mostra l’intero risultato
     st.write("⚙️ Risultato MSAL:", result)
 
     if "access_token" in result:
