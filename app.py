@@ -1,36 +1,39 @@
+# app.py
 import streamlit as st
+import login
+import importlib
 
-
+# ✅ Deve essere la primissima cosa nel file
 st.set_page_config(
     page_title="Dashboard HoliSoft",
     layout="wide"
 )
 
-import streamlit as st
-import login
-import os
-
+# DEBUG — mostra lo stato corrente
 st.write("✅ App avviata.")
 st.write("Session state:", dict(st.session_state))
 st.write("Query params:", st.query_params)
 
-# Controllo autenticazione
+# 🔐 LOGIN FLOW
 if "authenticated" not in st.session_state:
+    # Azure restituisce ?code=...&state=... dopo il login
     if "code" in st.query_params:
         login.handle_callback()
     else:
         login.show()
     st.stop()
 
-# Se sei qui, sei autenticato
-st.success("🔒 Login effettuato con successo!")
+# ✅ SE ARRIVIAMO QUI, L’UTENTE È AUTENTICATO
+st.success("✅ Login effettuato con successo!")
 
-# Mostra i dati del token
+# Mostra info del token
 token = st.session_state.get("token")
 if token:
-    st.subheader("🧾 Dati del token ricevuto:")
-    st.json(token)  # visualizza il token in JSON
+    st.subheader("🔑 Token di accesso")
+    st.json(token)
 else:
-    st.error("Problema: token non presente in session_state")
+    st.warning("⚠ Nessun token presente.")
 
-# Continua con il resto dell'app...
+# Qui puoi continuare con la tua app
+st.markdown("---")
+st.write("🚀 Benvenuto nella tua app protetta!")
