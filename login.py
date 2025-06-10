@@ -1,3 +1,4 @@
+# login.py
 import streamlit as st
 import os
 import msal
@@ -12,7 +13,7 @@ TENANT_ID     = os.getenv("AZURE_TENANT_ID")
 REDIRECT_URI  = os.getenv("AZURE_REDIRECT_URI")
 AUTHORITY     = f"https://login.microsoftonline.com/{TENANT_ID}"
 
-# SOLO lo scope di Microsoft Graph; OIDC (openid, profile, offline_access) è implicito
+# Scope Graph API
 SCOPES = ["User.Read"]
 
 def show():
@@ -24,6 +25,7 @@ def show():
         client_credential=CLIENT_SECRET
     )
 
+    # Genera e salva lo state completo
     state = secrets.token_urlsafe(16)
     st.session_state["oauth_state"] = state
 
@@ -37,8 +39,9 @@ def show():
 
 def handle_callback():
     params = st.query_params
-    code  = params.get("code", [None])[0]
-    state = params.get("state", [None])[0]
+    # leggi code e state per intero
+    code  = params.get("code")
+    state = params.get("state")
 
     # Debug
     st.write("🔍 code ricevuto:", code)
