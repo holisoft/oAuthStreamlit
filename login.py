@@ -1,3 +1,4 @@
+# login.py
 import streamlit as st
 import os
 import msal
@@ -6,50 +7,47 @@ from dotenv import load_dotenv
 load_dotenv()
 
 CLIENT_ID     = os.getenv("AZURE_CLIENT_ID")
-CLIENT_SECRET = os.getenv("AZURE_CLIENT_SECRET")
 TENANT_ID     = os.getenv("AZURE_TENANT_ID")
-REDIRECT_URI  = os.getenv("AZURE_REDIRECT_URI")
 AUTHORITY     = f"https://login.microsoftonline.com/{TENANT_ID}"
-
-# Scope Graph API
-SCOPES = ["User.Read"]
+SCOPES        = ["User.Read"]
 
 def show():
-    st.title("🔐 Login con Azure AD")
-    msal_app = msal.ConfidentialClientApplication(
+    st.title("🔐 Login con Azure AD (Device Code Flow)")
+    msal_app = msal.PublicClientApplication(
         CLIENT_ID,
-        authority=AUTHORITY,
-        client_credential=CLIENT_SECRET
+        authority=AUTHORITY
     )
-    auth_url = msal_app.get_authorization_request_url(
-        scopes=SCOPES,
-        redirect_uri=REDIRECT_URI,
-        prompt="select_account"
-    )
-    st.markdown(f"[➡️ Accedi con il tuo account Microsoft]({auth_url})")
 
-def handle_callback():
-    params = st.query_params
-    code = params.get("code", [None])[0]
-
-    if not code:
-        st.error("❌ Nessun codice di autorizzazione ricevuto. Riprova da capo.")
+    # Inizia il device flow
+    device_flow = msal_app.initiate_device_flow(scopes=SCOPES)
+    if "user_code" not in device_flow:
+        st.error("Impossibile iniziare il device flow.")
         st.stop()
 
-    msal_app = msal.ConfidentialClientApplication(
+    # Salva per il polling
+    st.session_state["device_flow"] = device_flow
+
+    st.write("1. Vai a:", device_flow["verification_uri"])
+    st.write("2. Inserisci il codice:", device_flow["user_code"])
+    st.write("---")
+    st.write("Quando hai completato il login, clicca qui sotto:")
+
+    if st.button("Ho effettuato l’accesso"):
+        login_with_device_flow()
+
+def login_with_device_flow():
+    device_flow = st.session_state.get("device_flow")
+    if not device_flow:
+        st.error("Sessione di device flow non trovata. Riprova.")
+        st.stop()
+
+    msal_app = msal.PublicClientApplication(
         CLIENT_ID,
-        authority=AUTHORITY,
-        client_credential=CLIENT_SECRET
+        authority=AUTHORITY
     )
-    result = msal_app.acquire_token_by_authorization_code(
-        code,
-        scopes=SCOPES,
-        redirect_uri=REDIRECT_URI
-    )
+    result = msal_app.acquire_token_by_device_flow(device_flow)
 
-    # Debug: mostra l’intero risultato
-    st.write("⚙️ Risultato MSAL:", result)
-
+    # result conterrà access_token se va bene
     if "access_token" in result:
         st.session_state["authenticated"] = True
         st.session_state["token"] = result
@@ -57,5 +55,5 @@ def handle_callback():
     else:
         err  = result.get("error", "unknown_error")
         desc = result.get("error_description", "")
-        st.error(f"❌ Errore fetch token: {err} — {desc}")
+        st.error(f"❌ Errore token: {err} — {desc}")
         st.stop()
