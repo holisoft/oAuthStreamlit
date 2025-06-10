@@ -8,6 +8,7 @@ st.set_page_config(page_title="Dashboard HoliSoft", layout="wide")
 # Debug iniziale
 st.write("✅ App avviata.")
 st.write("📦 Session state:", dict(st.session_state))
+st.write("🌐 Host corrente:", st.runtime.scriptrunner.get_request_context().host)
 st.write("📦 Query params:", st.query_params)
 
 # **Flusso di autenticazione**
