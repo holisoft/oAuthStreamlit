@@ -1,12 +1,18 @@
 import streamlit as st
-import login
 
-st.write("Query params:", st.query_params)
 
 st.set_page_config(
     page_title="Dashboard HoliSoft",
     layout="wide"
 )
+
+import streamlit as st
+import login
+import os
+
+st.write("✅ App avviata.")
+st.write("Session state:", dict(st.session_state))
+st.write("Query params:", st.query_params)
 
 # Controllo autenticazione
 if "authenticated" not in st.session_state:

@@ -27,7 +27,8 @@ def show():
         st.stop()
 
 def handle_callback():
-    code = st.query_params.get("code")
+    code = st.experimental_get_query_params().get("code", [None])[0]
+    # code = st.query_params.get("code")
     state = st.query_params.get("state")
 
     if code and state == st.session_state.get("oauth_state"):
