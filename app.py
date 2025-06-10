@@ -1,35 +1,29 @@
 import streamlit as st
 import login
 
-st.set_page_config(
-    page_title="Dashboard Listini HoliSoft",
-    layout="wide"
-)
+# Deve essere la PRIMA chiamata di Streamlit
+st.set_page_config(page_title="Dashboard Listini HoliSoft", layout="wide")
 
-# Debug
+# Debug iniziale
 st.write("✅ App avviata.")
 st.write("Session state:", dict(st.session_state))
 st.write("Query params:", st.query_params)
 
-# Authentication flow
-if "authenticated" not in st.session_state:
+# Flow di autenticazione
+if not st.session_state.get("authenticated"):
     if "code" in st.query_params:
         login.handle_callback()
     else:
         login.show()
     st.stop()
 
-# Authenticated
+# Se arrivi qui, sei autenticato
 st.success("✅ Login effettuato con successo!")
 
-# Display token
-token = st.session_state.get("token")
-if token:
-    st.subheader("🔑 Token di accesso")
-    st.json(token)
-else:
-    st.warning("⚠️ Nessun token presente.")
+# Visualizzo il token per conferma
+st.subheader("🔑 Token e dati utente")
+st.json(st.session_state["token"])
 
-# Main app content
+# Qui il resto della tua app
 st.markdown("---")
-st.write("🚀 Benvenuto nella tua app protetta!")
+st.write("🚀 Benvenuto nella tua app protetta da Azure AD!")
