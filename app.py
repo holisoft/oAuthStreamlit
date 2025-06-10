@@ -1,7 +1,10 @@
 import streamlit as st
 import login
 
-st.set_page_config(...)
+st.set_page_config(
+    page_title="Dashboard HoliSoft",
+    layout="wide"
+)
 
 # Controllo autenticazione
 if "authenticated" not in st.session_state:
