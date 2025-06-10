@@ -1,3 +1,4 @@
 streamlit
-authlib
+streamlit-authenticator
 python-dotenv
+authlib
