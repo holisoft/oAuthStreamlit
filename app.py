@@ -1,33 +1,48 @@
+# app.py
+# Esempio di semplice autenticazione in Streamlit usando streamlit-authenticator
+# Dipendenze (requirements.txt):
+# streamlit
+# streamlit-authenticator
+# python-dotenv    (opzionale, se vuoi usare .env)
+
 import streamlit as st
 import streamlit_authenticator as stauth
-from dotenv import load_dotenv
 
-load_dotenv()
+# Configura le credenziali direttamente nel codice per semplicità
+# In produzione, sposta questi valori nei secrets di Streamlit o in un file .env
+credentials = {
+    "usernames": {
+        "admin": {
+            "name": "Amministratore",
+            # hash bcrypt di "password"
+            "password": "$2b$12$KIXQG1fE/NAiPdMDH3pU3eI5/Ju9i9KHx3aLmYtUCRsLjaxHXSZX2"
+        }
+    }
+}
 
-# Carica credenziali dal secrets.toml
-credentials = st.secrets["credentials"]
-
+# Inizializza l'autenticatore
 authenticator = stauth.Authenticate(
     credentials,
-    cookie_name="holisoft_auth",
-    key="some-random-signature-key",  # cambia con una stringa a caso
-    cookie_expiry_days=1
+    cookie_name="streamlit_auth",  # nome del cookie
+    key="12345",                   # chiave di firma qualsiasi
+    cookie_expiry_days=1            # durata del cookie
 )
 
-# Schermata di login
-name, authentication_status, username = authenticator.login("Login", "main")
+st.title("Esempio di Login Streamlit")
 
-if not authentication_status:
-    if authentication_status is False:
-        st.error("❌ Username o password errati")
-    st.stop()
+# Mostra la form di login
+name, authentication_status, username = authenticator.login(
+    "Login",
+    "main"
+)
 
-# Se siamo qui, siamo autenticati
-st.success(f"✅ Benvenuto, {name}!")
+# Gestione stato autenticazione
+if authentication_status:
+    st.success(f"✅ Login effettuato con successo! Benvenuto, {name}.")
+elif authentication_status is False:
+    st.error("❌ Login fallito. Controlla credenziali.")
+else:
+    st.info("🔒 Inserisci username e password.")
 
-# Il pulsante di logout
-authenticator.logout("Logout", "main")
-
-# ———— Qui inizia la tua app protetta ————
-st.markdown("---")
-st.write("🚀 Contenuto riservato alla tua app!")
+# In produzione puoi mostrare un pulsante di logout:
+# authenticator.logout("Logout", "main")
