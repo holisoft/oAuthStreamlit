@@ -31,7 +31,7 @@ st.title("Esempio di Login Streamlit")
 # Mostra la form di login
 name, authentication_status, username = authenticator.login(
     "Login",
-    location="main"
+    "main"
 )
 
 # Gestione stato autenticazione
