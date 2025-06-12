@@ -1,70 +1,68 @@
 # app.py
 import streamlit as st
 import streamlit_authenticator as stauth
+from streamlit_authenticator.utilities.hasher import Hasher
 
 # ------------------------------------------------------------
-# 1) Definisci gli utenti e le loro password in chiaro
+# 1) Definisci le credenziali in chiaro
 # ------------------------------------------------------------
-usernames = ["admin"]
-names     = ["Amministratore"]
-passwords = ["password"]  # <-- qui la pw che vuoi usare per il test
-
-# ------------------------------------------------------------
-# 2) Genera gli hash in modo sicuro (passlib sotto al cofano)
-# ------------------------------------------------------------
-hashed_passwords = stauth.Hasher(passwords).generate()
-
-# ------------------------------------------------------------
-# 3) Costruisci il dict delle credenziali
-# ------------------------------------------------------------
-credentials = {
+raw_credentials = {
     "usernames": {
-        user: {"name": name, "password": hashed}
-        for user, name, hashed in zip(usernames, names, hashed_passwords)
+        "admin": {
+            "name": "Amministratore",
+            "password": "password"   # password in chiaro
+        }
+        # → aggiungi qui altri utenti, sempre con chiave "username"
     }
 }
 
 # ------------------------------------------------------------
-# 4) Parametri cookie (usa in prod una chiave lunga e forte)
+# 2) Genera gli hash per tutte le password
+# ------------------------------------------------------------
+credentials = Hasher.hash_passwords(raw_credentials)  # classmethod che sostituisce .generate() :contentReference[oaicite:0]{index=0}
+
+# ------------------------------------------------------------
+# 3) Parametri cookie (cambia cookie_key in produzione!)
 # ------------------------------------------------------------
 cookie_name        = "holisoft_auth"
-cookie_key         = "ciccio"        # per prova va bene, ma in produzione >32 char
+cookie_key         = "STRINGA_SEGRETA_E_RANDOMICA_DI_ALMENO_32_CARATTERI"
 cookie_expiry_days = 30
-preauthorized      = []              # liste di email pre-autorizzate (se ne hai)
+preauthorized      = []  # lista di email se ne hai
 
+# ------------------------------------------------------------
+# 4) Crea l’istanza dell’Authenticator
+# ------------------------------------------------------------
 authenticator = stauth.Authenticate(
     credentials,
     cookie_name,
     cookie_key,
     cookie_expiry_days,
-    preauthorized
+    preauthorized,
+    auto_hash=False       # già abbiamo hashato noi le password
 )
 
 # ------------------------------------------------------------
-# 5) Mostra il form di login e popola st.session_state
+# 5) Mostra il form di login (location="main") 
 # ------------------------------------------------------------
-authenticator.login(location="main")
+authenticator.login(location="main")  # popola st.session_state :contentReference[oaicite:1]{index=1}
 
 # ------------------------------------------------------------
-# 6) (DEBUG) Vedi cosa c’è in session_state dopo il submit
-# ------------------------------------------------------------
-st.write("🔍 session_state:", dict(st.session_state))
-
-# ------------------------------------------------------------
-# 7) Gestisci lo stato di autenticazione
+# 6) Leggi lo stato da session_state
 # ------------------------------------------------------------
 auth_status = st.session_state.get("authentication_status")
+user_name   = st.session_state.get("name")
 
 if auth_status:
     # login OK
-    name = st.session_state.get("name")
-    st.sidebar.success(f"✅ Benvenuto, {name}!")
+    st.sidebar.success(f"✅ Benvenuto, {user_name}!")
     st.title("🚀 Dashboard riservata")
-    st.write("Contenuto segreto qui.")
+    st.write("Qui puoi mettere i contenuti per utenti autenticati.")
     authenticator.logout(location="sidebar")
 
 elif auth_status is False:
+    # credenziali errate
     st.error("❌ Username o password errati")
 
 else:
+    # ancora non hai cliccato “Login”
     st.info("🔒 Inserisci username e password")
