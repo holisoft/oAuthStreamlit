@@ -29,15 +29,19 @@ authenticator = stauth.Authenticate(
 st.title("Esempio di Login Streamlit")
 
 # Mostra la form di login
-name, authentication_status, username = authenticator.login(
-    "main",
-    "Login"
+# decompattazione a 2 variabili (non più 3)
+authentication_status, username = authenticator.login(
+    "Login",
+    "main"
 )
 
 # Gestione stato autenticazione
 if authentication_status:
-    st.success(f"✅ Login effettuato con successo! Benvenuto, {name}.")
+# prendi il nome “umano” dal dict delle credenziali
+    name = credentials["usernames"][username]["name"]
+    st.success(f"✅ Benvenuto, {name}!")
 elif authentication_status is False:
-    st.error("❌ Login fallito. Controlla credenziali.")
+    st.error("❌ Login fallito")
 else:
-    st.info("🔒 Inserisci username e password.")
+    st.info("🔒 Inserisci username e password")
+
