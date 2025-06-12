@@ -3,7 +3,7 @@ import streamlit as st
 import streamlit_authenticator as stauth
 
 # ------------------------------------------------------------
-# 1) Configurazione delle credenziali (come nel tuo esempio)
+# 1) Configurazione delle credenziali
 # ------------------------------------------------------------
 credentials = {
     "usernames": {
@@ -17,10 +17,10 @@ credentials = {
 }
 
 # ------------------------------------------------------------
-# 2) Parametri cookie (sostituisci key con un segreto tuo)
+# 2) Parametri cookie
 # ------------------------------------------------------------
 cookie_name = "holisoft_auth"
-cookie_key = "SOSTITUISCI_CON_UNA_STRINGA_CASUALE_E_SEGRETA"  # 🔐
+cookie_key = "ciccio"  # 🔐
 cookie_expiry_days = 30
 preauthorized = []  # email pre-autorizzate, se ne hai
 
@@ -34,15 +34,18 @@ authenticator = stauth.Authenticate(
 )
 
 # ------------------------------------------------------------
-# 3) Login: restituisce (name, authentication_status, username)
+# 3) Login widget (ritorna sempre None se location ≠ 'unrendered')
 # ------------------------------------------------------------
-name, authentication_status, username = authenticator.login("main")  # location = 'main' :contentReference[oaicite:0]{index=0}
+authenticator.login(location="main")  # rende il form e popola st.session_state :contentReference[oaicite:1]{index=1}
 
 # ------------------------------------------------------------
 # 4) Gestione dello stato di autenticazione
 # ------------------------------------------------------------
-if authentication_status:
+auth_status = st.session_state.get("authentication_status")
+
+if auth_status:
     # utente autenticato
+    name = st.session_state.get("name")
     st.sidebar.success(f"✅ Benvenuto, {name}!")
     
     # — CONTENUTO DELL’APP per utenti loggati —
@@ -51,12 +54,12 @@ if authentication_status:
     # ---------------------------------------------
 
     # pulsante di logout in sidebar
-    authenticator.logout("sidebar")
+    authenticator.logout(location="sidebar")
 
-elif authentication_status is False:
+elif auth_status is False:
     # credenziali errate
     st.error("❌ Username o password errati")
 
 else:
-    # stato None = nessun tentativo di login ancora fatto
+    # auth_status è None: nessun tentativo di login ancora fatto
     st.info("🔒 Inserisci username e password")
