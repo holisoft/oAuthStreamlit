@@ -29,6 +29,9 @@ authenticator = stauth.Authenticate(
 st.title("Esempio di Login Streamlit")
 
 # Mostra la form di login
+# In alcune versioni di streamlit-authenticator l'ordine dei parametri
+# della funzione login è (location, form_name). Utilizziamo quindi
+# prima la posizione e poi il nome del form.
 name, authentication_status, username = authenticator.login(
     "main",
     "Login"
