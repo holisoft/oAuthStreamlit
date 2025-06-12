@@ -1,3 +1,11 @@
+# app.py
+# -----------------------------
+# Configurazione Streamlit Secrets
+# nel file .streamlit/secrets.toml:
+#
+# usernames = { admin = { name = "Amministratore", password = "password" } }
+# cookie_key = "STRINGA_RANDOMICA_E_SEGRETA_DI_ALMENO_32_CARATTERI"
+#
 import streamlit as st
 import streamlit_authenticator as stauth
 from streamlit_authenticator.utilities.hasher import Hasher
@@ -6,15 +14,15 @@ from streamlit_authenticator.utilities.hasher import Hasher
 # 1) Lettura delle credenziali e del cookie_key da secrets
 # ------------------------------------------------------------
 raw_credentials = {"usernames": {}}
-# streamlit.secrets["credentials"]["usernames"] è un dict di dicts:
-for username, data in st.secrets["credentials"]["usernames"].items():
+# st.secrets["usernames"] è un dict di dicts: username -> {"name":..., "password":...}
+for username, data in st.secrets.get("usernames", {}).items():
     raw_credentials["usernames"][username] = {
-        "name": data["name"],
-        "password": data["password"]  # password in chiaro
+        "name": data.get("name"),
+        "password": data.get("password")  # password in chiaro
     }
 
 cookie_name        = "holisoft_auth"
-cookie_key         = st.secrets["cookie_key"]
+cookie_key         = st.secrets.get("cookie_key")
 cookie_expiry_days = 30
 preauthorized      = []
 
